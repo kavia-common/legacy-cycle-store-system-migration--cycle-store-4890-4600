@@ -9,7 +9,5 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-fs.writeFileSync(
-  outputPath,
-  JSON.stringify(swaggerSpec, null, 2)
-);
+fs.writeFileSync(outputPath, JSON.stringify(swaggerSpec, null, 2));
+console.log('OpenAPI spec generated at', outputPath);
