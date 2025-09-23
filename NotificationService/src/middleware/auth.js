@@ -1,18 +1,40 @@
 'use strict';
 
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'notification-service-dev-secret';
+
 /**
- * Simple Bearer token auth middleware.
- * In production integrate with your IdP/JWT verification.
+ * Middleware for JWT authentication and authorization
  */
 module.exports = function authMiddleware(req, res, next) {
-  const auth = req.header('authorization') || req.header('Authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  // Extract token from Authorization header
+  const authHeader = req.header('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!token) {
-    return res.status(401).json({ errorCode: 'Unauthorized', message: 'Missing bearer token' });
+    return res.status(401).json({
+      errorCode: 'Unauthorized',
+      message: 'Missing bearer token'
+    });
   }
 
-  // For now accept any non-empty token; attach to req for audit.
-  req.auth = { token, subject: 'internal-service', scopes: ['notifications:write', 'notifications:read'] };
-  next();
+  try {
+    // Verify and decode token
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Attach auth info to request
+    req.auth = {
+      subject: decoded.sub || 'unknown',
+      scopes: decoded.scopes || [],
+      token
+    };
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      errorCode: 'Unauthorized',
+      message: 'Invalid token'
+    });
+  }
 };
