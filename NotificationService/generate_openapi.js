@@ -9,7 +9,9 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
+const spec = { ...swaggerSpec, servers: [{ url: 'http://localhost:4003' }] };
+
 fs.writeFileSync(
   outputPath,
-  JSON.stringify(swaggerSpec, null, 2)
+  JSON.stringify(spec, null, 2)
 );
